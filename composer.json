@@ -1,0 +1,11 @@
+{
+    "name": "silvasilas99/sintegra_spider",
+    "autoload": {
+        "psr-4": {
+            "Src\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "@php -d xdebug.remote_autostart=Off -d xdebug.remote_enable=Off src/test/SintegraSpiderTest"
+    }
+}
