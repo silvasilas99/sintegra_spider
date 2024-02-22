@@ -11,6 +11,7 @@ use DOMDocument;
 class SintegraSpider {
     
     private const BASE_SINTEGRA_URL           = "http://www.sintegra.fazenda.pr.gov.br";
+    private const DATA_CONSULT_URL            = "http://www.sintegra.fazenda.pr.gov.br/sintegra/sintegra1/consultar";
     private const ABSOLUT_SINTEGRA_URL        = "http://www.sintegra.fazenda.pr.gov.br/sintegra/";
     private const CAPTCHA_REMOTE_URL          = "http://www.sintegra.fazenda.pr.gov.br/sintegra/captcha";
     private const LOCAL_CAPTCHA_IMAGE_PATH    = "./vendor/storage/resources/images/captcha.jpeg";
@@ -28,18 +29,17 @@ class SintegraSpider {
         $this->createCookie();
     }
 
-    public function findByCNPJ(string $cnpj, string $verifyCode, string $currentCookie)
+    public function findByCNPJ(string $cnpj, string $verifyCode, string $currentCookie = null)
     {
         try {
             $curlHandler = curl_init();
 
             $options = [
                 CURLOPT_URL             => self::ABSOLUT_SINTEGRA_URL,
-                CURLOPT_RETURNTRANSFER  => 1,
-                CURLOPT_POST            => 1,
-                CURLOPT_HEADER          => 1,
-                CURLOPT_VERBOSE         => 1,
-                CURLOPT_USERAGENT       => "SilvaSilas99\Src\App\SintegraSpider: 0.0.1",
+                CURLOPT_RETURNTRANSFER  => true,
+                //CURLOPT_FOLLOWLOCATION  => 1,
+                CURLOPT_HEADER          => true,
+                CURLOPT_POST            => true,
                 CURLOPT_POSTFIELDS      => [
                     "_method"                           => "POST",
                     "data[Sintegra1][CodImage]"         => $verifyCode,
@@ -50,18 +50,26 @@ class SintegraSpider {
                     "data[Sintegra1][CnpjCpfProdutor]"  => ""
                 ],
                 CURLOPT_HTTPHEADER      => [
-                    "Content-Type: text/html; charset=utf-8",
-                    "Cookie: {$currentCookie}",  
-                ]
+                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    "Connection: keep-alive",
+                    "Content-Type: application/x-www-form-urlencoded",
+                    "Upgrade-Insecure-Requests: 1",
+                    "Cookie: CAKEPHP={$currentCookie}"
+                ],
+                CURLOPT_VERBOSE         => true,
+                CURLOPT_USERAGENT       => "SilvaSilas99\Src\App\SintegraSpider: 0.0.1",
             ];
 
             curl_setopt_array($curlHandler, $options);
 
             $responseFromCurl = curl_exec($curlHandler);
-
-            curl_close($curlHandler);
+            
+            $domHandler = new DOMDocument("1.0", "UTF-8");
+            @$domHandler->loadHTML($responseFromCurl);
 
             var_dump($responseFromCurl);
+
+            curl_close($curlHandler);
 
             return 0;
         } catch (\Throwable $th) {
@@ -79,7 +87,7 @@ class SintegraSpider {
             $options = [
                 CURLOPT_URL             => self::CAPTCHA_REMOTE_URL,
                 CURLOPT_RETURNTRANSFER  => 1,
-                CURLOPT_VERBOSE         => 1,
+                CURLOPT_VERBOSE         => 0,
                 CURLINFO_HEADER_OUT     => 1,
                 CURLOPT_USERAGENT       => "SilvaSilas99\Src\App\SintegraSpider: 0.0.1",
                 CURLOPT_HTTPHEADER      => [
@@ -143,7 +151,7 @@ class SintegraSpider {
             CURLOPT_URL             => self::ABSOLUT_SINTEGRA_URL,
             CURLOPT_RETURNTRANSFER  => 1,
             CURLOPT_HEADER          => 1,
-            CURLOPT_VERBOSE         => 1,
+            CURLOPT_VERBOSE         => 0,
             CURLOPT_USERAGENT       => "SilvaSilas99\Src\App\SintegraSpider: 0.0.1",
             CURLOPT_HTTPHEADER      => [
                 "Content-Type: text/html; charset=utf-8"
@@ -167,7 +175,7 @@ class SintegraSpider {
         }
 
         return 1;
-    } 
+    }
 
     private function createCookie ()
     {        
